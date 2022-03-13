@@ -1,8 +1,10 @@
-from discord.ext import commands
 from .Helpers.Embeds import make_embed
+from discord.ext import commands
+from typing import Tuple
+
 import discord
 import asyncio
-from typing import Tuple
+
 
 class Reactions(commands.Cog):
     
@@ -12,6 +14,7 @@ class Reactions(commands.Cog):
         # Listener attributes
         self.pairs = []
         self.message = None
+
 
     @commands.command(aliases=['rr'])
     async def reactrole(
@@ -44,7 +47,7 @@ class Reactions(commands.Cog):
         def check_react(reaction, user):
             return user == ctx.author and str(reaction.emoji) == '👎'
 
-        done, pending = await asyncio.wait([
+        done, _ = await asyncio.wait([
                     self.bot.wait_for('message', check=check_message),
                     self.bot.wait_for('reaction_add', check=check_react)
                 ], return_when=asyncio.FIRST_COMPLETED)
@@ -65,6 +68,7 @@ class Reactions(commands.Cog):
 
         await ctx.message.delete()
         
+
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
         if payload.user_id != self.bot.user.id:
@@ -76,6 +80,7 @@ class Reactions(commands.Cog):
                     new_reaction = reaction.get('Emote')
                     if new_reaction == str(payload.emoji):
                         await payload.member.add_roles(reaction.get('Role'))
+
 
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload):

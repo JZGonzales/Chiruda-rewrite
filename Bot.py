@@ -1,10 +1,12 @@
-import discord
-import pathlib
-import os
-import asyncio
-import datetime
 from discord.ext import commands
 from MY_TOKEN import token
+
+import datetime
+import discord
+import pathlib
+import asyncio
+import os
+
 
 desc = None # Bot description
 intents = discord.Intents.default()
@@ -44,6 +46,7 @@ async def on_ready():
     except discord.errors.ExtensionAlreadyLoaded:
         pass
 
+
 @bot.event
 async def on_resumed():
     print(f'Session resumed on {datetime.datetime.now()}')
@@ -59,5 +62,6 @@ async def on_connect():
 @bot.event
 async def on_disconnect():
     print(f'Disconnect occured on {datetime.datetime.now()}')
+
 
 bot.run(token)

@@ -1,19 +1,20 @@
-import math
-import random
+from .Quotes_cache.quote_handler import quote_handler
+from .Helpers.Embeds import make_embed
+from discord.ui import Button, View
+from discord.ext import commands
+
 import discord
 import asyncio
+import random
+import math
 
-from discord.ext import commands
-from discord.ui import Button, View
-
-from .Helpers.Embeds import make_embed
-from .Quotes_cache.quote_handler import quote_handler
 
 class Quotes(commands.Cog):
     
     def __init__(self, bot):
         self.bot = bot
         self.page = 1
+
 
     @commands.command(aliases=['aq'])
     async def add_quote(self, 
@@ -25,6 +26,7 @@ class Quotes(commands.Cog):
             author = author[1:]
         quote_handler(ctx.guild.id).add_quote(author, quote)
         await ctx.send('Quote added!', delete_after=5)
+
 
     @commands.command(aliases=['rq'])
     async def remove_quote(self, ctx, index):
