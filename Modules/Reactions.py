@@ -84,14 +84,17 @@ class Reactions(commands.Cog):
 
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload):
-        if payload.user_id != self.bot.user.id:
-            if payload.message_id == self.message.id:
-                for reaction in self.pairs:
-                    new_reaction = reaction.get('Emote')
-                    if new_reaction == str(payload.emoji):
-                        guild = self.bot.get_guild(payload.guild_id)
-                        member = guild.get_member(payload.user_id)
-                        await member.remove_roles(reaction.get('Role'))
+        if self.message == None:
+            return
+        else:
+            if payload.user_id != self.bot.user.id:
+                if payload.message_id == self.message.id:
+                    for reaction in self.pairs:
+                        new_reaction = reaction.get('Emote')
+                        if new_reaction == str(payload.emoji):
+                            guild = self.bot.get_guild(payload.guild_id)
+                            member = guild.get_member(payload.user_id)
+                            await member.remove_roles(reaction.get('Role'))
 
 def setup(bot):
     bot.add_cog(Reactions(bot))
