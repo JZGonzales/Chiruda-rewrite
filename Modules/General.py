@@ -1,4 +1,3 @@
-from sympy import Q
 from MY_TOKEN import imgur_id, imgur_secret, approved_ids, imgur_access, imgur_refresh
 from .Requests.request_handler import add_request
 from petpetgif import petpet as petter
