@@ -48,20 +48,9 @@ async def on_ready():
 
 
 @bot.event
-async def on_resumed():
-    print(f'Session resumed on {datetime.datetime.now()}')
-
-
-@bot.event
 async def on_connect():
     _status = discord.Game('with errors')
     await bot.change_presence(status=discord.Status.dnd, activity=_status)
     print(f'Logged in as {bot.user} (ID <#{bot.user.id}>)')
-
-
-@bot.event
-async def on_disconnect():
-    print(f'Disconnect occured on {datetime.datetime.now()}')
-
 
 bot.run(token)

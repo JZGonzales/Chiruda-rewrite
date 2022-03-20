@@ -1,9 +1,10 @@
+from sympy import Q
 from MY_TOKEN import imgur_id, imgur_secret, approved_ids, imgur_access, imgur_refresh
 from .Requests.request_handler import add_request
 from petpetgif import petpet as petter
 from imgurpython import ImgurClient
 from typing import Union, Optional
-from discord.ext import commands
+from discord.ext import commands, pages
 from datetime import datetime
 from io import BytesIO
 import PIL
@@ -126,5 +127,84 @@ class General(commands.Cog):
             await ctx.send('Invalid argument!')
 
 
+class HelpCommand(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+
+        # Embeds for command
+        all = discord.Embed(title='Commands for Chiruda')
+        all.add_field(name='General',
+                      value='~art\n~coinflip\n~pet\n~ping\nrequest',
+                      inline=False)
+        all.add_field(name='Moderation',
+                      value='~set [jail]',
+                      inline=False)
+        all.add_field(name='Quotes',
+                      value='~add_quote\n~remove_quote\n~quotes',
+                      inline=False)
+        all.add_field(name='Reactions',
+                      value='~reactrole',
+                      inline=False)
+
+        general = discord.Embed(title='General')
+        general.add_field(name='~art',
+                          value='Sends art drawn by https://twitter.com/pixeltrazh',
+                          inline=False)
+        general.add_field(name='~coinflip',
+                          value='Flips a coin',
+                          inline=False)
+        general.add_field(name='~pet [Emoji, Member or Image (jpeg or png)]',
+                          value='Pets an image',
+                          inline=False)
+        general.add_field(name='~ping',
+                          value='Simple ping command',
+                          inline=False)
+        general.add_field(name='~request [Request]',
+                          value='Request a feature for the bot',
+                          inline=False)
+
+        mods = discord.Embed(title='Moderation')
+        mods.add_field(name='~set',
+                       value='Sets up the chiruda mute function for the server',
+                       inline=False)
+        mods.add_field(name='~set [jail]',
+                       value='Sets the jail channel for the server.\n[jail] should be a text channel.',
+                       inline=False)
+
+        quotes = discord.Embed(title='Quotes')
+        quotes.add_field(name='~add_quote [Quotee] [Quote]',
+                         value='Adds a quote to the server',
+                         inline=False)
+        quotes.add_field(name='~remove_quote [Index]',
+                         value='Removes a quote from the server (Index shown in ~quotes)',
+                         inline=False)
+        quotes.add_field(name='~quotes *[Index]',
+                         value='Shows all quotes for the server.\n Optionally, show quote by index',
+                         inline=False)
+        
+        reacts = discord.Embed(title='Reactions')
+        reacts.add_field(name='~reactrole [Roles] [Emotes]',
+                       value='Creates a message to give users roles by reacting.\nThere should be an equal amount of Roles to emotes.',
+                       inline=False)
+
+        self.pages = [
+            all,
+            general,
+            mods,
+            quotes,
+            reacts
+        ]
+    
+    def get_commands(self):
+        return self.pages
+
+    @commands.command()
+    async def help(self, ctx):
+        paginator = pages.Paginator(pages=self.get_commands(),
+                                    loop_pages=True)
+        await paginator.send(ctx, target=ctx.author, target_message='Help sent!')
+
+
 def setup(bot):
     bot.add_cog(General(bot))
+    bot.add_cog(HelpCommand(bot))
