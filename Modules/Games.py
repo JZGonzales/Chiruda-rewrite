@@ -1,4 +1,3 @@
-from numpy import empty
 from .Helpers.word_list import words, allowed_words, emotes
 from discord.ext import commands
 
