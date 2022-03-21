@@ -66,6 +66,7 @@ class Wordle(commands.Cog):
             # Reset init values for new game
             self.word = random.choice(words)
             self.bad_letters = []
+            self.color_matrix = []
             self.guesses = 1
 
             # New game embed setup
