@@ -13,7 +13,7 @@ class Moderation(commands.Cog):
         return ctx.author.top_role.permissions.manage_channels
 
 
-    @commands.group()
+    @commands.group(description='Sets up the mute role for the server. Must have the \'Manage Channels\' permission to use')
     @commands.check(is_mod)
     async def set(self, ctx):
         roles = ctx.guild.roles
@@ -36,7 +36,7 @@ class Moderation(commands.Cog):
                                                 send_messages=False)
 
 
-    @set.command()
+    @set.command(description='Sets the channel jailed members are restricted to')
     async def jail(self, ctx, channel:Optional[discord.TextChannel]=None):
         if channel == None:
             for channel in ctx.guild.channels:

@@ -1,40 +1,37 @@
-from .Helpers.Embeds import make_embed
 from discord.ext import commands
-from typing import Tuple
 
 import discord
 import asyncio
 
 
-class Reactions(commands.Cog):
-    
+class React(commands.Cog):
+
     def __init__(self, bot):
         self.bot = bot
 
-        # Listener attributes
-        self.pairs = []
+        self.author = None
         self.message = None
+        self.embed = None
+        self.pairs = []
 
 
-    @commands.command(aliases=['rr'])
-    async def reactrole(
-        self, ctx,
-        roles: commands.Greedy[discord.Role],
-        *emotes
-        ):
+    async def is_manager(ctx):
+        return ctx.author.top_role.permissions.manage_guild
 
-        fields = []
-        for role, emote in zip(roles, emotes):
-            field = ['\u200b', f'React with {emote} for <@&{role.id}>', False]
-            fields.append(field)
-            self.pairs.append({'Emote':emote, 'Role':role})
-
-        embed = make_embed(
-            title='React Roles',
-            description=None,
-            fields=fields,
-            color=0xFF696B
-        )
+    
+    @commands.check(is_manager)
+    @commands.command(aliases=['rr'],
+                      description='Sets up a reactrole message. Must have the \'Manage Server\' permission to use')
+    async def reactrole(self, ctx, *roles: discord.Role):
+        for role in roles:
+            if ctx.guild.get_member(self.bot.user.id).top_role < role:
+                await ctx.send('One or more of these roles is not assignable. Please change the role hierarchy so your roles are below the bot role!')
+                return
+            self.pairs.append({'Emote':None, 'Role':role})
+        embed = discord.Embed(title='React roles!')
+        embed.add_field(name='Roles',
+                        value='\n'.join([role.name for role in roles]),
+                        inline=False)
 
         ask_for_desc = await ctx.send(
             'Send a message for the description or react with 👎 to skip'
@@ -62,39 +59,41 @@ class Reactions(commands.Cog):
 
         msg = await ctx.send(embed=embed)
         self.message = msg
+        self.author = ctx.author
+        self.embed = embed
 
-        for emote in emotes:
-            await msg.add_reaction(emote)
-
-        await ctx.message.delete()
-        
 
     @commands.Cog.listener()
-    async def on_raw_reaction_add(self, payload):
-        if payload.user_id != self.bot.user.id:
-            if self.message == None:
+    async def on_reaction_add(self, reaction, user):
+        if user.id != self.bot.user.id:
+            if user.id == self.author.id and self.message.id == reaction.message.id:
+                roles = self.embed.fields[0].value.splitlines()
+                index = [emote.emoji for emote in reaction.message.reactions].index(reaction.emoji)
+
+                try:
+                    display_role = roles.pop(index)
+                except IndexError:
+                    await reaction.message.remove_reaction(reaction, user)
+                    return
+
+                roles.insert(index, f'{display_role} : {reaction.emoji}')
+                
+                self.pairs[index].update({'Emote':reaction.emoji})
+
+                embed = self.embed
+                embed.set_footer(text='React for any of these roles!', icon_url=discord.Embed.Empty)
+                embed.set_field_at(0, name=embed.fields[0].name,
+                                    value='\n'.join([role for role in roles]),
+                                    inline=False)
+
+                await reaction.message.edit(embed=embed)
                 return
 
-            if payload.message_id == self.message.id:
-                for reaction in self.pairs:
-                    new_reaction = reaction.get('Emote')
-                    if new_reaction == str(payload.emoji):
-                        await payload.member.add_roles(reaction.get('Role'))
+            for pair in self.pairs:
+                match_emote = pair.get('Emote')
+                if match_emote == reaction.emoji:
+                    await user.add_roles(pair.get('Role'))
 
-
-    @commands.Cog.listener()
-    async def on_raw_reaction_remove(self, payload):
-        if self.message == None:
-            return
-        else:
-            if payload.user_id != self.bot.user.id:
-                if payload.message_id == self.message.id:
-                    for reaction in self.pairs:
-                        new_reaction = reaction.get('Emote')
-                        if new_reaction == str(payload.emoji):
-                            guild = self.bot.get_guild(payload.guild_id)
-                            member = guild.get_member(payload.user_id)
-                            await member.remove_roles(reaction.get('Role'))
 
 def setup(bot):
-    bot.add_cog(Reactions(bot))
+    bot.add_cog(React(bot))

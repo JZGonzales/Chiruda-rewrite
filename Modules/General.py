@@ -21,7 +21,7 @@ class General(commands.Cog):
         self.album_id = '91Cu8V6'
 
 
-    @commands.command()
+    @commands.command(description='Simple ping command')
     async def ping(self, ctx):
         a = datetime.utcnow()
         b = ctx.message.created_at
@@ -30,7 +30,8 @@ class General(commands.Cog):
         await ctx.send(f'Pong! ({abs(round(c.total_seconds()*1000))}ms)')
 
 
-    @commands.command(aliases=['cf'])
+    @commands.command(aliases=['cf'],
+                      description='Flips a coin')
     async def coinflip(self, ctx):
         coin = random.randrange(0, 2)
         if coin == 0:
@@ -39,7 +40,8 @@ class General(commands.Cog):
             await ctx.send('Tails!')
 
 
-    @commands.group(invoke_without_command=True)
+    @commands.group(invoke_without_command=True,
+                    description='Sends random art drawn by https://twitter.com/pixeltrazh')
     async def art(self, ctx):
         images = self.imgur.get_album_images(self.album_id)
         urls = []
@@ -50,7 +52,7 @@ class General(commands.Cog):
         await ctx.send(embed=embed)
 
 
-    @art.command()
+    @art.command(hidden=True, description='Ignore this command, thanks.')
     async def add(self, ctx):
         if ctx.author.id not in approved_ids:
             await ctx.send('You are not approved to add images!')
@@ -75,13 +77,13 @@ class General(commands.Cog):
         await ctx.send(embed=embed)
 
 
-    @commands.command()
+    @commands.command(description='Request a feature for the bot')
     async def request(self, ctx, *, request):
         add_request({'Name':str(ctx.author), 'Request':request})
         await ctx.send('Request sent!')
 
 
-    @commands.command()
+    @commands.command(description='Pet an emoji, image or member')
     async def pet(self, ctx, image: Optional[Union[discord.PartialEmoji,
                                                    discord.member.Member,
                                                    discord.Attachment,
@@ -125,79 +127,41 @@ class General(commands.Cog):
         except PIL.UnidentifiedImageError:
             await ctx.send('Invalid argument!')
 
-
+   
 class HelpCommand(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-
-        # Embeds for command
-        all = discord.Embed(title='Commands for Chiruda')
-        all.add_field(name='General',
-                      value='~art\n~coinflip\n~pet\n~ping\nrequest',
-                      inline=False)
-        all.add_field(name='Moderation',
-                      value='~set [jail]',
-                      inline=False)
-        all.add_field(name='Quotes',
-                      value='~add_quote\n~remove_quote\n~quotes',
-                      inline=False)
-        all.add_field(name='Reactions',
-                      value='~reactrole',
-                      inline=False)
-
-        general = discord.Embed(title='General')
-        general.add_field(name='~art',
-                          value='Sends art drawn by https://twitter.com/pixeltrazh',
-                          inline=False)
-        general.add_field(name='~coinflip',
-                          value='Flips a coin',
-                          inline=False)
-        general.add_field(name='~pet [Emoji, Member or Image (jpeg or png)]',
-                          value='Pets an image',
-                          inline=False)
-        general.add_field(name='~ping',
-                          value='Simple ping command',
-                          inline=False)
-        general.add_field(name='~request [Request]',
-                          value='Request a feature for the bot',
-                          inline=False)
-
-        mods = discord.Embed(title='Moderation')
-        mods.add_field(name='~set',
-                       value='Sets up the chiruda mute function for the server',
-                       inline=False)
-        mods.add_field(name='~set [jail]',
-                       value='Sets the jail channel for the server.\n[jail] should be a text channel.',
-                       inline=False)
-
-        quotes = discord.Embed(title='Quotes')
-        quotes.add_field(name='~add_quote [Quotee] [Quote]',
-                         value='Adds a quote to the server',
-                         inline=False)
-        quotes.add_field(name='~remove_quote [Index]',
-                         value='Removes a quote from the server (Index shown in ~quotes)',
-                         inline=False)
-        quotes.add_field(name='~quotes *[Index]',
-                         value='Shows all quotes for the server.\n Optionally, show quote by index',
-                         inline=False)
-        
-        reacts = discord.Embed(title='Reactions')
-        reacts.add_field(name='~reactrole [Roles] [Emotes]',
-                       value='Creates a message to give users roles by reacting.\nThere should be an equal amount of Roles to emotes.',
-                       inline=False)
-
-        self.pages = [
-            all,
-            general,
-            mods,
-            quotes,
-            reacts
-        ]
     
     def get_commands(self):
-        return self.pages
+        def check_cog(mods):
+            ignore = ['Dev', 'Monitor', 'events', 'HelpCommand']
+            return mods[0] not in ignore
 
-    @commands.command()
+        def check_command(com):
+            return not com.hidden
+        
+        cogs = list(filter(check_cog, zip(list(self.bot.cogs), list(self.bot.cogs.values()))))
+        #commands = list(filter(check_command, cogs.walk_commands()))
+
+        embeds = [discord.Embed() for i in range(len(cogs))]
+        all_commands = discord.Embed(title='All commands')
+        help_pages = []
+
+        for loop, page in enumerate(embeds):
+            page.title = cogs[loop][0]
+            page.add_field(name='Commands',
+                        value='\n'.join([f"~{command.qualified_name} {command.signature} - {command.description}" for command in cogs[loop][1].walk_commands()]),
+                        inline=False)
+            all_commands.add_field(name=cogs[loop][0],
+                        value='\n'.join([f"~{command.qualified_name} {command.signature} - {command.description}" for command in cogs[loop][1].walk_commands()]),
+                        inline=False)
+            help_pages.append(page)
+        
+        help_pages.insert(0, all_commands)
+        return help_pages
+
+
+    @commands.command(description='Shows this')
     async def help(self, ctx):
         paginator = pages.Paginator(pages=self.get_commands(),
                                     loop_pages=True)

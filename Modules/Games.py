@@ -5,7 +5,7 @@ import discord
 import random
 import string
 
-class Wordle(commands.Cog):
+class Games(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
@@ -25,17 +25,21 @@ class Wordle(commands.Cog):
         black = '⬛'
 
         colors = []
+        green_letters = []
 
         for guess_letter, word_letter in zip(guess, self.word):
             if guess_letter == word_letter:
                 colors.append(green)
+                green_letters.append(guess_letter)
             
-            elif guess_letter in self.word:
+            elif (guess_letter in self.word and
+                  guess_letter not in green_letters):
                 colors.append(yellow)
 
             else:
                 colors.append(black)
-                self.bad_letters.append(guess_letter)
+                if guess_letter not in green_letters:
+                    self.bad_letters.append(guess_letter)
             
         colors.append(f' {guess}')
 
@@ -59,7 +63,8 @@ class Wordle(commands.Cog):
         return ' '.join(new_letters)
 
 
-    @commands.group(aliases=['w'])
+    @commands.group(aliases=['w'],
+                    description='Starts a new wordle game')
     async def wordle(self, ctx):
 
         if ctx.invoked_subcommand == None:
@@ -84,7 +89,7 @@ class Wordle(commands.Cog):
             self.message = await ctx.send(embed=embed)
 
 
-    @wordle.command()
+    @wordle.command(description='Used to guess the word in a wordle game')
     async def guess(self, ctx, guess:str):
         # Make sure guess is lowercase to do string matching
         embed = self.embed
@@ -92,7 +97,7 @@ class Wordle(commands.Cog):
 
         # Checks
         if guess not in allowed_words:
-            await ctx.send('That\'s not a word!')
+            await ctx.send('That\'s not a valid word!')
             return
 
         if self.guesses == None:
@@ -128,4 +133,4 @@ class Wordle(commands.Cog):
         await self.message.edit(embed=embed)
 
 def setup(bot):
-    bot.add_cog(Wordle(bot))
+    bot.add_cog(Games(bot))
