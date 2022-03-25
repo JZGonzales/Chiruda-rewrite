@@ -42,15 +42,13 @@ async def on_connect():
 async def reload_cogs(ctx, cog=None):
     if await bot.is_owner(ctx.author):
         if cog == None:
-            try:
-                for cog in list(bot.cogs):
-                    bot.reload_extension(f'Modules.{cog}')
-                    asyncio.sleep(2)
-                return
-            except Exception as e:
-                print(f"Error: {e}")
-                await ctx.send(f'There was an error reloading {cog}')
-
+            loaded_cogs = []
+            for filename in os.listdir('./Modules'):
+                if filename.endswith('.py'):
+                    bot.reload_extension(f'Modules.{filename[:-3]}')
+                    loaded_cogs.append(f'Modules.{filename[:-3]}')
+            print(f'reloaded {loaded_cogs}')
+            return
 
         cog = cog.title()
         try:
