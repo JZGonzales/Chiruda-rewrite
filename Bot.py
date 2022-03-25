@@ -1,9 +1,7 @@
 from discord.ext import commands
 from MY_TOKEN import token
 
-import datetime
 import discord
-import pathlib
 import asyncio
 import os
 
@@ -41,8 +39,19 @@ async def on_connect():
 
 
 @bot.command(aliases=['rl'])
-async def reload_cogs(ctx, cog):
+async def reload_cogs(ctx, cog=None):
     if await bot.is_owner(ctx.author):
+        if cog == None:
+            try:
+                for cog in list(bot.cogs):
+                    bot.reload_extension(f'Modules.{cog}')
+                    asyncio.sleep(2)
+                return
+            except Exception as e:
+                print(f"Error: {e}")
+                await ctx.send(f'There was an error reloading {cog}')
+
+
         cog = cog.title()
         try:
             bot.reload_extension(f'Modules.{cog}')
