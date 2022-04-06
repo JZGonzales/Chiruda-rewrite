@@ -28,7 +28,7 @@ class React(commands.Cog):
                 await ctx.send('One or more of these roles is not assignable. Please change the role hierarchy so your roles are below the bot role!')
                 return
             self.pairs.append({'Emote':None, 'Role':role})
-        embed = discord.Embed(title='React roles!')
+        embed = discord.Embed(title='React roles!', color=0xFD6C6B)
         embed.add_field(name='Roles',
                         value='\n'.join([role.name for role in roles]),
                         inline=False)

@@ -76,7 +76,8 @@ class Games(commands.Cog):
 
             # New game embed setup
             embed = discord.Embed(title='Wordle!',
-                                  description='Guess the word with ~w guess [word]!')
+                                  description='Guess the word with ~w guess <guess>!',
+                                  color=0xFD6C6B)
             
             embed.add_field(name='Guesses',
                             value='\u200b',
@@ -103,7 +104,7 @@ class Games(commands.Cog):
         if self.guesses == None:
             return
 
-        if self.guesses < 7:
+        if self.guesses < 6:
             self.color_matrix.append(await self.color_array(guess))
 
             str_matrix = '\n'.join(''.join(str(i) for i in x) for x in self.color_matrix)

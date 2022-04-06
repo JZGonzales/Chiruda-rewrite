@@ -47,7 +47,7 @@ class General(commands.Cog):
         urls = []
         for image in images:
             urls.append(image.link)
-        embed=discord.Embed()
+        embed=discord.Embed(color=0xFD6C6B)
         embed.set_image(url=random.choice(urls))
         await ctx.send(embed=embed)
 
@@ -72,7 +72,7 @@ class General(commands.Cog):
         image = self.imgur.upload_from_url(file, anon=False)
         print(image.get('id'))
         self.imgur.album_add_images(self.album_id, image.get('id'))
-        embed=discord.Embed()
+        embed=discord.Embed(color=0xFD6C6B)
         embed.set_image(url=image.get('link'))
         await ctx.send(embed=embed)
 
@@ -143,8 +143,8 @@ class HelpCommand(commands.Cog):
         cogs = list(filter(check_cog, zip(list(self.bot.cogs), list(self.bot.cogs.values()))))
         #commands = list(filter(check_command, cogs.walk_commands()))
 
-        embeds = [discord.Embed() for i in range(len(cogs))]
-        all_commands = discord.Embed(title='All commands')
+        embeds = [discord.Embed(color=0xFD6C6B) for i in range(len(cogs))]
+        all_commands = discord.Embed(title='All commands', color=0xFD6C6B)
         help_pages = []
 
         for loop, page in enumerate(embeds):
@@ -165,6 +165,7 @@ class HelpCommand(commands.Cog):
     async def help(self, ctx):
         paginator = pages.Paginator(pages=self.get_commands(),
                                     loop_pages=True)
+        paginator.is_persistent = True
         await paginator.send(ctx, target=ctx.author, target_message='Help sent!')
 
 

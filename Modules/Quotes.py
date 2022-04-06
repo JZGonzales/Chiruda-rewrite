@@ -16,7 +16,7 @@ class Quotes(commands.Cog):
     def all_quotes(self, quotes):
         quote_pages = []
 
-        embeds = [discord.Embed(title='Quotes for this server') for i in range(math.ceil(len(quotes)/5))]
+        embeds = [discord.Embed(title='Quotes for this server', color=0xFD6C6B) for i in range(math.ceil(len(quotes)/5))]
         embed_num = 0
         for embed in embeds:
             for quote in quotes[embed_num:embed_num+5]:
@@ -35,7 +35,7 @@ class Quotes(commands.Cog):
         if ctx.invoked_subcommand == None:
             quotes = quote_handler(ctx.guild.id).get_quotes()
             if index != None:
-                embed = discord.Embed(title=f'Quote #{index}')
+                embed = discord.Embed(title=f'Quote #{index}', color=0xFD6C6B)
                 embed.add_field(name=quotes[index-1].get('Author'),
                                 value=quotes[index].get('Quote'),
                                 inline=False)
