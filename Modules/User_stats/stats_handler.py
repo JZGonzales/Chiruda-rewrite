@@ -38,7 +38,7 @@ class edit_stats:
 
 
     def update(self, id, xp=None, level=None, money=None, 
-               planted=False, harvest=None, cyield=None,
+               planted=None, harvest=None, cyield=None,
                daily=None, fish=None):
         stats = json.loads(self.file_contents())
 
