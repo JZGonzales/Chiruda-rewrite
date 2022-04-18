@@ -37,7 +37,7 @@ class Economy(commands.Cog):
             return 100
 
 
-    @commands.command()
+    @commands.command(description='Plant crops on your farm')
     async def plant(self, ctx):
         stats = us.get_stats(ctx.author)
         coins = stats.get('coins')
@@ -62,7 +62,7 @@ class Economy(commands.Cog):
 
         await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(description='Harvest the crops you planted')
     async def harvest(self, ctx):
         stats = us.get_stats(ctx.author)
         harvest_time = stats.get('next_harvest')
@@ -101,7 +101,7 @@ class Economy(commands.Cog):
         pass
 
 
-    @commands.command()
+    @commands.command(description='Purchase items to enhance your farm')
     async def shop(self, ctx):
         V = View(timeout=None)
 
@@ -210,7 +210,7 @@ class Economy(commands.Cog):
         await ctx.send(embed=embed, view=V)
 
     
-    @commands.command()
+    @commands.command(description='Claims your daily free coins')
     async def daily(self, ctx):
         stats = us.get_stats(ctx.author)
         daily = stats.get('next_daily')
@@ -246,7 +246,8 @@ class Economy(commands.Cog):
         await ctx.send(embed=embed)
 
 
-    @commands.command(aliases=['money', 'coins'])
+    @commands.command(aliases=['money', 'coins'],
+                      description='See how many coins you have')
     async def wallet(self, ctx):
         stats = us.get_stats(ctx.author)
         coins = stats.get('coins')
@@ -258,7 +259,7 @@ class Economy(commands.Cog):
         await ctx.send(embed=embed)
 
 
-    @commands.group()
+    @commands.group(description='Fish for items')
     @commands.cooldown(1, 5)
     async def fish(self, ctx):
         if ctx.invoked_subcommand == None:
@@ -300,7 +301,8 @@ class Economy(commands.Cog):
             await ctx.send(embed=embed)
 
     
-    @fish.command(aliases=['inv'])
+    @fish.command(aliases=['inv'],
+                  description='See how many fish you\'ve caight')
     async def inventory(self, ctx):
         stats = us.get_stats(ctx.author)
         inventory = {
@@ -322,7 +324,7 @@ class Economy(commands.Cog):
         await ctx.send(embed=embed)
 
     
-    @fish.command()
+    @fish.command(description='Sell your fish')
     async def sell(self, ctx, fish_type):
         stats = us.get_stats(ctx.author)
         coins = stats.get('coins')
@@ -377,6 +379,7 @@ class Economy(commands.Cog):
     async def fish_error(self, ctx, error):
         if isinstance(error, commands.CommandOnCooldown):
             await ctx.send('Please slow down!!', delete_after=3)
+
 
 def setup(bot):
     bot.add_cog(Economy(bot))
