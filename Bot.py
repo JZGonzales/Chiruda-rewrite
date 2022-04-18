@@ -10,6 +10,7 @@ desc = None # Bot description
 intents = discord.Intents.default()
 intents.members = True #Enables changing server member things
 intents.reactions = True
+intents.message_content = True
 bot = commands.Bot(command_prefix='~', description=desc, 
                    intents=intents, help_command=None)
 

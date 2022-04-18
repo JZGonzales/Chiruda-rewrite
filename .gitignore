@@ -1,6 +1,7 @@
 MY_TOKEN.py
 __pycache__
 **.txt
+**.json
 Modules/dev_tools
 Dev.py
 alt-bot.py

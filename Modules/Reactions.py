@@ -65,7 +65,7 @@ class React(commands.Cog):
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
-        if user.id != self.bot.user.id:
+        if user.id != self.bot.user.id and self.author != None:
             if user.id == self.author.id and self.message.id == reaction.message.id:
                 roles = self.embed.fields[0].value.splitlines()
                 index = [emote.emoji for emote in reaction.message.reactions].index(reaction.emoji)

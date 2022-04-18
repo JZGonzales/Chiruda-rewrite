@@ -150,10 +150,10 @@ class HelpCommand(commands.Cog):
         for loop, page in enumerate(embeds):
             page.title = cogs[loop][0]
             page.add_field(name='Commands',
-                        value='\n'.join([f"~{command.qualified_name} {command.signature} - {command.description}" for command in cogs[loop][1].walk_commands()]),
+                        value='\n'.join([f"~{command.qualified_name} {command.signature} - {command.description}" for command in cogs[loop][1].walk_commands() if not command.hidden]),
                         inline=False)
             all_commands.add_field(name=cogs[loop][0],
-                        value='\n'.join([f"~{command.qualified_name} {command.signature} - {command.description}" for command in cogs[loop][1].walk_commands()]),
+                        value='\n'.join([f"~{command.qualified_name} {command.signature} - {command.description}" for command in cogs[loop][1].walk_commands() if not command.hidden]),
                         inline=False)
             help_pages.append(page)
         
