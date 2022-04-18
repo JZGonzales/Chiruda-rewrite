@@ -57,6 +57,7 @@ class Economy(commands.Cog):
 
         embed = discord.Embed(title='Crops planted!',
                               description=f'You paid {COIN}15 for crops',
+                              timestamp=time,
                               color=COLOR)
         embed.set_footer(text='You can harvest in 10 minutes', icon_url=discord.Embed.Empty)
 
