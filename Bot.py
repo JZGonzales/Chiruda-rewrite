@@ -49,6 +49,8 @@ async def reload_cogs(ctx, cog=None):
                     bot.reload_extension(f'Modules.{filename[:-3]}')
                     loaded_cogs.append(f'Modules.{filename[:-3]}')
             print(f'reloaded {loaded_cogs}')
+            strp = "[]"
+            await ctx.send(f'Successfully reloaded {str([a.replace("Modules.", "") for a in loaded_cogs]).strip(strp)}')
             return
 
         cog = cog.title()
