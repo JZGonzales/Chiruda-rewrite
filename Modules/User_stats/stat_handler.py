@@ -8,10 +8,17 @@ class user_stats:
         self.path = './Modules/User_stats/stats.json'
 
     def new_stats(self, user:discord.User):
-        new_user = pd.DataFrame({'id':[f'ID{str(user.id)}'], 'username':[str(user)], 'coins':[0], 'farm_planted':[False], 
-                    'next_harvest':[False], 'yield_amount':[None], 'total_harvests':[0], 'next_daily':[None], 
-                    'fish_trash':[0], 'fish_common':[0], 'fish_uncommon':[0], 'fish_rare':[0],
-                    'boost2':[0], 'boost5':[0], 'harvest2x':[0]})
+        new_user = pd.DataFrame({
+            'id':[f'ID{str(user.id)}'], 
+            'username':[str(user)], 
+            'coins':[0], 
+            'next_daily':[None], 
+            'fish_trash':[0], 
+            'fish_common':[0], 
+            'fish_uncommon':[0], 
+            'fish_rare':[0]
+            }
+        )
         new_user.set_index('id', inplace=True)
         try:
             df = pd.read_json(self.path)
@@ -50,6 +57,9 @@ class user_stats:
 
         for stat, value in zip(updated_stats, updated_stats.values()):
             if stat in df.columns:
+                df.loc[[id], [stat]] = value
+            else:
+                df[stat] = [None]* df.shape[0]
                 df.loc[[id], [stat]] = value
 
         df.to_json(self.path, indent=True)

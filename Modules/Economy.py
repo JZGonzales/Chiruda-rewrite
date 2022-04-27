@@ -3,6 +3,7 @@ import random
 import json
 import discord
 
+from typing import Optional
 from discord.ui import Button, View, Select
 from discord.ext import commands
 from .User_stats.stat_handler import user_stats
@@ -19,198 +20,13 @@ def __ap__(name):
         ap = '\'s'
     return ap
 
-class Economy(commands.Cog):
+
+class Money(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
 
-    def determine_money(self, num):
-        if num in range(10, 91):
-            s_num = str(num)
-            num = int(s_num[0])*3
-            return num
 
-        if num < 10:
-            return 0
-
-        if num > 90:
-            return 100
-
-
-    @commands.command(description='Plant crops on your farm')
-    async def plant(self, ctx):
-        stats = us.get_stats(ctx.author)
-        coins = stats.get('coins')
-        if coins - 15 < 0:
-            await ctx.send('You don\'t have enough coins to plant!', delete_after=5)
-            return
-        if stats.get('farm_planted'):
-            await ctx.send('You must harvest your farm first!', delete_after=5)
-            return
-
-        now = datetime.datetime.now(datetime.timezone.utc)
-        time = now + datetime.timedelta(minutes=10)
-        next_harvest = time.isoformat()
-
-        us.update_stats(ctx.author, farm_planted=True, yield_amount=random.randrange(0, 100),
-                        next_harvest=next_harvest, coins=coins-15)
-
-        embed = discord.Embed(title='Crops planted!',
-                              description=f'You paid {COIN}15 for crops',
-                              timestamp=time,
-                              color=COLOR)
-        embed.set_footer(text='You can harvest in 10 minutes', icon_url=discord.Embed.Empty)
-
-        await ctx.send(embed=embed)
-
-    @commands.command(description='Harvest the crops you planted')
-    async def harvest(self, ctx):
-        stats = us.get_stats(ctx.author)
-        harvest_time = stats.get('next_harvest')
-
-        if not stats.get('farm_planted'):
-            await ctx.send('You must plant your farm first!')
-            return
-
-        if datetime.datetime.fromisoformat(harvest_time) > datetime.datetime.now(datetime.timezone.utc):
-            time_left = datetime.datetime.fromisoformat(harvest_time) - datetime.datetime.now(datetime.timezone.utc)
-            _, minutes, seconds = str(time_left).split(':')
-            # Purely cosmetic if statement
-            if minutes == '0':
-                await ctx.send(f'You can harvest in {seconds[:2]} seconds!', delete_after=10)
-            
-            else:
-                await ctx.send(f'You can harvest in {minutes} minutes and {seconds[:2]} seconds!', delete_after=10)
-            return
-
-        profit = self.determine_money(stats.get('yield_amount'))
-        coins = stats.get('coins')
-        current_harvests = stats.get('total_harvests')
-
-        us.update_stats(ctx.author, farm_planted=False, coins=coins+profit,
-                        total_harvests=current_harvests+1, next_harvest=False)
-
-        embed = discord.Embed(title='Crops harvested!',
-                              description=f'You gained {COIN}{profit} from this harvest!',
-                              color=COLOR)
-        embed.set_footer(text='Use ~plant to plant more crops', icon_url=discord.Embed.Empty)
-
-        await ctx.send(embed=embed)
-
-
-    async def get_item_inventory(self):
-        pass
-
-
-    @commands.command(description='Purchase items to enhance your farm')
-    async def shop(self, ctx):
-        V = View(timeout=None)
-
-        # All purchasable items
-        items = {'⏩ Boosts':{
-                    'boost2':['2 minute boost', 50], 
-                    'boost5':['5 minute boost', 100]
-                    },
-                 '🌱 Fertilizers':{
-                    'harvest2x':['Double harvest', 50]
-                    }
-                }
-
-        #This is just for proper embed length
-        SEPERATOR = '\u2800'*15
-        
-        select = Select(placeholder='Please select an upgrade here!')
-        embed = discord.Embed(title='Item shop',
-            description=f'Purchase items to boost your farms productivity!{SEPERATOR}',
-            color=COLOR)
-
-
-        async def get_inventory():
-            # Yes I know this is inefficient.
-            stats = us.get_stats(ctx.author)
-            inventory = []
-            for category, item_data in  zip(list(items), list(items.values())):
-                for name, data in zip(list(item_data), list(item_data.values())):
-                    inventory.append(f'{category[0]} {data[0]} | {stats.get(name)}')
-            inventory.append(f"{COIN}{stats.get('coins')}")
-            return inventory
-
-        
-        for category, item_data in  zip(list(items), list(items.values())):
-            select.add_option(label=category[2:], 
-                              emoji=category[0],
-                              value=category)
-            field_values = []
-            for name, data in zip(list(item_data), list(item_data.values())):
-                field_values.append(f'{data[0]} | {COIN}{data[1]}')
-
-            embed.add_field(name=category, value='\n'.join(field_values))
-        embed.insert_field_at(0, name=f'{ctx.author.name}{__ap__(ctx.author.name)} inventory', 
-                              value='\n'.join(await get_inventory()),
-                              inline=False)
-
-
-        async def view_check(cb):
-            return cb.user == ctx.author
-
-
-        async def buy_callback(cb):
-            # custom id for buttons is a stringified list
-            # so we can grab the correct data quicker
-            stats = us.get_stats(ctx.author)
-            category, item = json.loads(cb.data.get('custom_id'))
-            item_type = items.get(category)
-            price = item_type.get(item)[1]
-
-            name = embed.fields[0].name
-            kwargs = {
-                'coins':stats.get('coins')-price,
-                item:stats.get(item)+1
-                }
-
-            us.update_stats(
-                ctx.author, 
-                **kwargs)
-
-            embed.set_field_at(
-                0,
-                name=name,
-                value='\n'.join(await get_inventory()),
-                inline=False)
-            
-            await cb.response.edit_message(embed=embed)
-
-        
-        async def select_callback(cb):
-            buy_type = cb.data.get('values')[0]
-            V.clear_items()
-
-            for item_nickname, item_info in zip(
-                items.get(buy_type), 
-                items.get(buy_type).values()
-                ):
-                item_name, value = item_info
-                button = Button(
-                    custom_id=f'["{buy_type}", "{item_nickname}"]',
-                    emoji=COIN,
-                    label=f'{value}\u2800{item_name}')
-
-                button.callback = buy_callback
-                button.style = discord.ButtonStyle.primary
-                V.add_item(button)
-
-            await ctx.message.delete()
-            await cb.message.delete()
-            await cb.response.send_message(embed=embed, view=V, ephemeral=True)
-
-        
-        select.callback = select_callback
-        V.add_item(select)
-        V.interaction_check = view_check
-        
-        await ctx.send(embed=embed, view=V)
-
-    
     @commands.command(description='Claims your daily free coins')
     async def daily(self, ctx):
         stats = us.get_stats(ctx.author)
@@ -260,8 +76,46 @@ class Economy(commands.Cog):
         await ctx.send(embed=embed)
 
 
+class Gambling(commands.Cog):
+
+    def __init__(self, bot):
+        self.bot = bot
+
+    @commands.command(description='Try your luck and gamble your money away!')
+    async def gamble(self, ctx, bet:Optional[int]=50):
+        coins = us.get_stats(ctx.author).get('coins')
+
+        if coins < bet:
+            await ctx.send('You don\'t have enough credits', delete_after=5)
+            return
+        
+        us.update_stats(ctx.author, coins=coins-bet)
+        rng = random.randrange(0, 500)
+        if rng == bet:
+            winnings = bet*5
+        elif rng in range(bet-5, bet+6):
+            winnings = bet*1.7
+        elif rng in range(bet-10, bet+11):
+            winnings = bet*1.5
+        elif rng in range(bet-15, bet+16):
+            winnings = bet*1.2
+        else:
+            us.update_stats(ctx.author, coins=coins-bet)
+            await ctx.send(f'You gambled {COIN}**{bet} coins** and lost it all')
+            return
+        
+        winnings = int(winnings)
+        us.update_stats(ctx.author, coins=coins+winnings)
+        await ctx.send(f'You gambled {COIN}**{bet} coins** and won {COIN}**{winnings} coins**')
+
+
+class Fishing(commands.Cog):
+
+    def __init__(self, bot):
+        self.bot = bot
+
     @commands.group(description='Fish for items')
-    @commands.cooldown(1, 5)
+    @commands.cooldown(1, 3)
     async def fish(self, ctx):
         if ctx.invoked_subcommand == None:
             stats = us.get_stats(ctx.author)
@@ -306,22 +160,32 @@ class Economy(commands.Cog):
                   description='See how many fish you\'ve caight')
     async def inventory(self, ctx):
         stats = us.get_stats(ctx.author)
+        sell_amount = {
+            'trash':3,
+            'common':5,
+            'uncommon':10,
+            'rare':50
+        }
         inventory = {
             'trash':stats.get('fish_trash'),
             'common':stats.get('fish_common'),
             'uncommon':stats.get('fish_uncommon'),
             'rare':stats.get('fish_rare')
         }
-        # list being joined is formatted as 'name amount'
-        name = '\n'.join([f'{e}{SEP*3}' for e in list(inventory)])
-        amount = '\n'.join([str(f) for f in list(inventory.values())])
+        field_name = []
+        field_value = []
+        for fish, amount in zip(list(inventory), list(inventory.values())):
+            field_name.append(fish.title())
+            fish_value = sell_amount.get(fish)*amount
+            field_value.append(f'> Held: {amount}\n> Value: {fish_value}')
+
         embed = discord.Embed(
             title=f'{ctx.author.name}{__ap__(ctx.author.name)} inventory',
-            color=COLOR
-        )
-        embed.add_field(name='Fishes', value=name)
-        embed.add_field(name=SEP, value=amount)
-        embed.set_footer(text=f'{stats.get("coins"):,} coins', icon_url=embed.Empty)
+            color=COLOR)
+            
+        for i in range(len(field_name)):
+            embed.add_field(name=field_name[i], value=field_value[i], inline=False)
+
         await ctx.send(embed=embed)
 
     
@@ -383,4 +247,6 @@ class Economy(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(Economy(bot))
+    bot.add_cog(Money(bot))
+    bot.add_cog(Gambling(bot))
+    bot.add_cog(Fishing(bot))

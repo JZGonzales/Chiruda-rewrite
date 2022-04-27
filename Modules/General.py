@@ -76,6 +76,15 @@ class General(commands.Cog):
         embed.set_image(url=image.get('link'))
         await ctx.send(embed=embed)
 
+    @art.command(invoke_without_subcommand=True,
+                      description='Sends the link to the imgur album')
+    async def album(self, ctx):
+        embed = discord.Embed(
+            description='You can find the album with all submitted artworks [here](https://imgur.com/a/91Cu8V6)',
+            color=0xFD6C6B
+        )
+        await ctx.send(embed=embed)
+
 
     @commands.command(description='Request a feature for the bot')
     async def request(self, ctx, *, request):
@@ -131,7 +140,7 @@ class General(commands.Cog):
 class HelpCommand(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-    
+    # Holy hell I don't even remember how this thing works
     def get_commands(self):
         def check_cog(mods):
             ignore = ['Dev', 'Monitor', 'events', 'HelpCommand']
