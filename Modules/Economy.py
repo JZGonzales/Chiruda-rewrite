@@ -82,6 +82,7 @@ class Gambling(commands.Cog):
         self.bot = bot
 
     @commands.command(description='Try your luck and gamble your money away!')
+    @commands.cooldown(1, 3)
     async def gamble(self, ctx, bet:Optional[int]=50):
         coins = us.get_stats(ctx.author).get('coins')
 
