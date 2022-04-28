@@ -143,10 +143,15 @@ class Fishing(commands.Cog):
                 k=1
             )
             random_fish = random_fish[0]
+            fish_type = RARITY.get(FISH.get(random_fish))
 
-            current = stats.get(f'fish_{RARITY.get(FISH.get(random_fish))}')
+            current = stats.get(f'fish_{fish_type}')
+            current_stat = stats.get(f'stat_{fish_type}') 
+            if current_stat == None:
+                current_stat = 0
             kwargs = {
-                f'fish_{RARITY.get(FISH.get(random_fish))}':current+1,
+                f'fish_{fish_type}':current+1,
+                f'stat_{fish_type}':current_stat+1,
                 'coins':stats.get('coins')-5
             }
             us.update_stats(ctx.author, **kwargs)
@@ -187,6 +192,23 @@ class Fishing(commands.Cog):
         for i in range(len(field_name)):
             embed.add_field(name=field_name[i], value=field_value[i], inline=False)
 
+        await ctx.send(embed=embed)
+
+    
+    @fish.command(description='Get the total amount of fish caught')
+    async def stats(self, ctx):
+        stats = us.get_stats(ctx.author)
+        fish_stats = {
+            'trash':stats.get('stat_trash'),
+            'common':stats.get('stat_common'),
+            'uncommon':stats.get('stat_uncommon'),
+            'rare':stats.get('stat_rare')
+        }
+
+        embed = discord.Embed(title=f'Fish stats for {ctx.author.name}', color=COLOR)
+        for fish, amount in zip(list(fish_stats), list(fish_stats.values())):
+            embed.add_field(name=fish.title(), value=f'> Total: {amount}', inline=False)
+        
         await ctx.send(embed=embed)
 
     

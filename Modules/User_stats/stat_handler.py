@@ -56,11 +56,9 @@ class user_stats:
             df = pd.read_json(self.path)
 
         for stat, value in zip(updated_stats, updated_stats.values()):
-            if stat in df.columns:
-                df.loc[[id], [stat]] = value
-            else:
-                df[stat] = [None]* df.shape[0]
-                df.loc[[id], [stat]] = value
+            if stat not in df.columns:
+                df[stat] = [0]* df.shape[0]
+            df.loc[[id], [stat]] = value
 
         df.to_json(self.path, indent=True)
 
