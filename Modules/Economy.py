@@ -91,8 +91,8 @@ class Gambling(commands.Cog):
             return
         
         us.update_stats(ctx.author, coins=coins-bet)
-        base = random.randrange(0, 500)
-        match = random.randrange(0, 500)
+        base = random.randrange(0, 150)
+        match = random.randrange(0, 150)
         if base == match:
             winnings = bet*5
         elif base in range(match-5, match+6):
