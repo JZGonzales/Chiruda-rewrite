@@ -110,6 +110,11 @@ class Gambling(commands.Cog):
         us.update_stats(ctx.author, coins=coins+winnings)
         await ctx.send(f'You gambled {COIN}**{bet} coins** and won {COIN}**{winnings} coins**')
 
+    
+    @gamble.error
+    async def gamble_error(self, ctx, error):
+        if isinstance(error, commands.CommandOnCooldown):
+            await ctx.send('Please slow down!!', delete_after=3)
 
 class Fishing(commands.Cog):
 
